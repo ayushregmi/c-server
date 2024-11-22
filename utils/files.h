@@ -1,0 +1,1 @@
+char *getFileContent(char *fileName);

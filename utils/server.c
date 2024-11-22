@@ -11,6 +11,7 @@
 #include "server.h"
 #include "request.h"
 #include "response.h"
+#include "files.h"
 
 #define MAXPENDING 5
 
@@ -55,21 +56,45 @@ void HandleRequest(int clientSocket)
     // displayRequest(request);
     struct ResponseFormat *response = createResponse("HTTP/1.1");
 
-    addBody(response, "<h1>Nice</h1>");
-    addContentType(response, "text/html");
-    addStatusCode(response, SC_OK);
+    char *fileContent;
+    char *fileName;
+    fprintf(stdout, "%s\n", request->uri + 1);
+    if (strcmp(request->uri, "/") == 0)
+    {
+        // fileName = malloc(6);
+        // strcpy(fileName, "index");
+        fileContent = getFileContent("index");
+    }
+    else
+    {
+        // fileName = malloc(strlen(request->uri) - 1);
+        // snprintf(fileName, strlen(request->uri), "%s", request->uri + 1);
+        fileContent = getFileContent(request->uri + 1);
+    }
+
+    // fprintf(stdout, "File Name: %s\n", fileName);
+
+    // fileContent = getFileContent(fileName);
+
+    // free(fileName);
+
+    if (fileContent == NULL)
+    {
+        addBody(response, "<h1>Page not found</h1>");
+        addContentType(response, "text/html");
+        addStatusCode(response, SC_NOT_FOUND);
+    }
+    else
+    {
+        addBody(response, fileContent);
+        addContentType(response, "text/html");
+        addStatusCode(response, SC_OK);
+    }
 
     const char *responseStr = prepareResponse(response);
-
     size_t responseLen = strlen(responseStr);
 
     ssize_t numBytesSent = send(clientSocket, responseStr, responseLen, 0);
-
-    // while (numBytesReceived > 0)
-    // {
-    //     numBytesReceived = recv(clientSocket, &buffer + totalBytesReceived, BUFSIZ - 1 - totalBytesReceived, 0);
-    // }
-
     freerequest(request);
     freeResponse(response);
 

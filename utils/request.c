@@ -62,7 +62,7 @@ struct RequestFormat *RequestFormatFromFile(FILE *file)
     // Reading the request information
     offset = readLine(file, buffer, offset, BUFFERSIZE);
 
-    char method[10], uri[10], httpVersion[10], key[128], value[128];
+    char method[20], uri[100], httpVersion[10], key[128], value[128];
 
     int t = sscanf(buffer, "%s %s %s", method, uri, httpVersion);
 
@@ -110,35 +110,42 @@ struct RequestFormat *RequestFormatFromFile(FILE *file)
         // getting the size of the file
         fseek(file, 0, SEEK_END);
         long fileSize = ftell(file);
-
         // moving to the offset position
         fseek(file, offset, SEEK_SET);
 
         long bytesToRead = atoi(search(httpRequest->headers, "Content-Length")->header_value);
+        fprintf(stdout, "%ld\n", bytesToRead);
 
-        bodyBuffer = (char *)malloc(bytesToRead + 1);
-        memset(bodyBuffer, 0, bytesToRead + 1);
-
-        if (bodyBuffer == NULL)
+        if (bytesToRead == 0)
         {
-            perror("malloc() failed");
-        }
-
-        size_t bytesRead = fread(bodyBuffer, 1, bytesToRead, file);
-
-        if (bytesRead != bytesToRead)
-        {
-            perror("fread() failed");
+            httpRequest->body = '\0';
         }
         else
         {
-            bodyBuffer[bytesRead] = '\0';
-            httpRequest->body = (char *)malloc(bytesRead + 1);
+            bodyBuffer = (char *)malloc(bytesToRead + 1);
+            memset(bodyBuffer, 0, bytesToRead + 1);
 
-            strncpy(httpRequest->body, bodyBuffer, bytesToRead);
+            if (bodyBuffer == NULL)
+            {
+                perror("malloc() failed");
+            }
+
+            size_t bytesRead = fread(bodyBuffer, 1, bytesToRead, file);
+
+            if (bytesRead != bytesToRead)
+            {
+                perror("fread() failed");
+            }
+            else
+            {
+                bodyBuffer[bytesRead] = '\0';
+                httpRequest->body = (char *)malloc(bytesRead + 1);
+
+                strncpy(httpRequest->body, bodyBuffer, bytesToRead);
+            }
+
+            free(bodyBuffer);
         }
-
-        free(bodyBuffer);
     }
 
     return httpRequest;
