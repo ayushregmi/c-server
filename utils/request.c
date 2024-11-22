@@ -141,8 +141,6 @@ struct RequestFormat *RequestFormatFromFile(FILE *file)
         free(bodyBuffer);
     }
 
-    fclose(file);
-
     return httpRequest;
 }
 

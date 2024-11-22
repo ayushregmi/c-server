@@ -52,18 +52,28 @@ void HandleRequest(int clientSocket)
     FILE *stream = fmemopen((void *)buffer, strlen(buffer), "r");
 
     struct RequestFormat *request = RequestFormatFromFile(stream);
-    displayRequest(request);
+    // displayRequest(request);
+    struct ResponseFormat *response = createResponse("HTTP/1.1");
 
-    // fclose(stream);
+    addBody(response, "<h1>Nice</h1>");
+    addContentType(response, "text/html");
+    addStatusCode(response, SC_OK);
+
+    const char *responseStr = prepareResponse(response);
+
+    size_t responseLen = strlen(responseStr);
+
+    ssize_t numBytesSent = send(clientSocket, responseStr, responseLen, 0);
 
     // while (numBytesReceived > 0)
     // {
     //     numBytesReceived = recv(clientSocket, &buffer + totalBytesReceived, BUFSIZ - 1 - totalBytesReceived, 0);
     // }
-}
 
-void shutdownSocket(int sig)
-{
+    freerequest(request);
+    freeResponse(response);
+
+    fclose(stream);
 }
 
 int createServer(char *hostName, char *port)
@@ -136,7 +146,6 @@ void startServer(struct Server *server)
         }
         HandleRequest(clientSocket);
 
-        shutdown(clientSocket, SHUT_RDWR);
         close(clientSocket);
     }
 

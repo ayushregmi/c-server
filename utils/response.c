@@ -125,7 +125,6 @@ char *prepareResponse(struct ResponseFormat *response)
         length += snprintf(responseBuffer + length, buffersize - length, "%s\r\n", response->responseBody);
     }
 
-    fprintf(stdout, "%d\n%ld\n", buffersize, strlen(responseBuffer));
     return responseBuffer;
 }
 
