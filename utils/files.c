@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *directoryName = "assets";
+const char *directoryName = "pages";
 
 char *getFileContent(char *fileName)
 {
