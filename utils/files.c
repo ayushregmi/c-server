@@ -7,9 +7,10 @@ const char *directoryName = "pages";
 
 char *getFileContent(char *fileName)
 {
-    char *newFileName, *filePath;
+    // char *newFileName;
+    char *filePath;
     struct dirent *directoryEntry;
-    DIR *directory = opendir("assets");
+    DIR *directory = opendir(directoryName);
 
     if (directory == NULL)
     {
@@ -18,14 +19,14 @@ char *getFileContent(char *fileName)
     }
     else
     {
-        newFileName = malloc(strlen(fileName) + 5);
-        strcpy(newFileName, fileName);
-        strcat(newFileName, ".html");
-        fprintf(stdout, "file: %s\t%s\t%ld\n", fileName, newFileName, strlen(fileName));
+        // newFileName = malloc(strlen(fileName) + 5);
+        // strcpy(newFileName, fileName);
+        // strcat(newFileName, ".html");
+        // fprintf(stdout, "file: %s\t%s\t%ld\n", fileName, newFileName, strlen(fileName));
 
         while ((directoryEntry = readdir(directory)) != NULL)
         {
-            if (strcmp(newFileName, directoryEntry->d_name) != 0)
+            if (strcmp(fileName, directoryEntry->d_name) != 0)
             {
                 continue;
             }
@@ -38,7 +39,7 @@ char *getFileContent(char *fileName)
             {
                 fprintf(stdout, "Unable to open file at location %s\n", filePath);
                 free(filePath);
-                free(newFileName);
+                // free(newFileName);
                 closedir(directory);
                 return NULL;
             }
@@ -57,13 +58,55 @@ char *getFileContent(char *fileName)
             }
 
             free(filePath);
-            free(newFileName);
+            // free(newFileName);
             closedir(directory);
             return fileContent;
         }
     }
-    fprintf(stdout, "File not found: %s\n", newFileName);
-    free(newFileName);
+    fprintf(stdout, "File not found: %s\n", fileName);
+    // free(newFileName);
     closedir(directory);
     return NULL;
+}
+
+char *getHtmlFileContent(const char *fileName)
+{
+    char *newFileName;
+
+    newFileName = malloc(strlen(fileName) + 5);
+    strcpy(newFileName, fileName);
+    strcat(newFileName, ".html");
+
+    char *fileContent = getFileContent(newFileName);
+
+    free(newFileName);
+
+    return fileContent;
+}
+
+char *getMimeType(char *fileName)
+{
+    if (fileName == NULL)
+    {
+        return "text/html";
+    }
+
+    // fprintf(stdout, "%s\n", fileName);
+    char *fileExtension = strrchr(fileName, '.');
+
+    if (fileExtension == NULL)
+        return "text/plain";
+
+    if (strcmp(fileExtension, ".html") == 0 || strcmp(fileExtension, ".html") == 0)
+        return "text/html";
+    else if (strcmp(fileExtension, ".css") == 0)
+        return "text/css";
+    else if (strcmp(fileExtension, ".js") == 0)
+        return "application/javascript";
+    else if (strcmp(fileExtension, ".json") == 0)
+        return "application/json";
+    else if (strcmp(fileExtension, ".xml") == 0)
+        return "application/xml";
+
+    return "text/plain";
 }

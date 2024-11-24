@@ -1,0 +1,56 @@
+/* General reset for margin and padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Set up the background for the page */
+body {
+  font-family: "Arial", sans-serif;
+  background-color: #f4f4f4;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Container for the welcome content */
+.welcome-container {
+  text-align: center;
+  padding: 40px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for the welcome heading */
+.welcome-heading {
+  font-size: 36px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Style for the welcome message */
+.welcome-message {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+/* Style for the "Get Started" button */
+.cta-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+/* Button hover effect */
+.cta-button:hover {
+  background-color: #0056b3;
+}

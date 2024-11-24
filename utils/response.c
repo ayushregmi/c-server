@@ -32,11 +32,14 @@ struct ResponseFormat *createResponse(char *httpVersion)
 {
     struct ResponseFormat *httpResponse = (struct ResponseFormat *)malloc(sizeof(struct ResponseFormat));
 
-    httpResponse->httpVersion = strdup(httpVersion);
+    httpResponse->httpVersion = malloc(strlen(httpVersion) + 1);
+    strcpy(httpResponse->httpVersion, httpVersion);
     httpResponse->headers = NULL;
-    httpResponse->responseBody = '\0';
+    httpResponse->responseBody = malloc(1);
+    httpResponse->responseBody[0] = '\0';
     httpResponse->statusCode = SC_INTERNAL_SERVER_ERROR;
-    httpResponse->contentType = "text/plain";
+    httpResponse->contentType = (char *)malloc(11 * sizeof(char));
+    strcpy(httpResponse->contentType, "text/plain");
     httpResponse->bodyLength = 0;
 
     return httpResponse;
@@ -49,6 +52,8 @@ void addStatusCode(struct ResponseFormat *response, int statusCode)
 
 void addContentType(struct ResponseFormat *response, char *contentType)
 {
+    free(response->contentType);
+
     response->contentType = strdup(contentType);
 }
 

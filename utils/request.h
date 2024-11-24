@@ -1,5 +1,4 @@
 
-
 struct RequestFormat
 {
     char *methodType;
@@ -12,6 +11,5 @@ struct RequestFormat
 };
 
 struct RequestFormat *RequestFormatFromFile(FILE *file);
-// void createRequest(char *request);
 void displayRequest(struct RequestFormat *request);
 void freerequest(struct RequestFormat *request);

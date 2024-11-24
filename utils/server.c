@@ -12,12 +12,28 @@
 #include "request.h"
 #include "response.h"
 #include "files.h"
+#include "endpoints.h"
 
 #define MAXPENDING 5
 
 int createServer(char *hostName, char *port);
 int AcceptClientRequest(int serverSocket);
-void HandleRequest(int clientSocket);
+void HandleRequest(int clientSocket, struct endpoints *endpoint);
+
+struct Server *getServer(char *hostName, char *port)
+{
+
+    struct Server *server = malloc(sizeof(struct Server));
+    server->hostName = malloc(strlen(hostName) + 1);
+    strcpy(server->hostName, hostName);
+
+    server->port = malloc(strlen(port) + 1);
+    strcpy(server->port, port);
+
+    server->endpointList = NULL;
+
+    return server;
+}
 
 int AcceptClientRequest(int serverSocket)
 {
@@ -34,7 +50,7 @@ int AcceptClientRequest(int serverSocket)
     return clientSocket;
 }
 
-void HandleRequest(int clientSocket)
+void HandleRequest(int clientSocket, struct endpoints *endpointList)
 {
     // Reading the data from the socket
     char buffer[BUFSIZ];
@@ -56,45 +72,61 @@ void HandleRequest(int clientSocket)
     // displayRequest(request);
     struct ResponseFormat *response = createResponse("HTTP/1.1");
 
-    char *fileContent;
-    char *fileName;
-    fprintf(stdout, "%s\n", request->uri + 1);
-    if (strcmp(request->uri, "/") == 0)
+    struct endpoints *endpoint = getEndpoint(endpointList, request->uri, request->methodType);
+    if (endpoint != NULL)
     {
-        // fileName = malloc(6);
-        // strcpy(fileName, "index");
-        fileContent = getFileContent("index");
+        fprintf(stdout, "%s\t%s\n", endpoint->uri, request->methodType);
+        endpoint->handler(request, response);
     }
     else
     {
-        // fileName = malloc(strlen(request->uri) - 1);
-        // snprintf(fileName, strlen(request->uri), "%s", request->uri + 1);
-        fileContent = getFileContent(request->uri + 1);
+
+        char *fileContent;
+        char *fileName;
+        // fprintf(stdout, "%s\n", request->uri + 1);
+        if (strcmp(request->uri, "/") == 0)
+        {
+            fileName = malloc(11);
+            strcpy(fileName, "index.html");
+            // fileContent = getFileContent("index.html");
+        }
+        else
+        {
+            fileName = malloc(strlen(request->uri) - 1);
+            snprintf(fileName, strlen(request->uri), "%s", request->uri + 1);
+            // fileContent = getFileContent(request->uri + 1);
+        }
+
+        // fprintf(stdout, "File Name: %s\n", request->uri);
+
+        fileContent = getFileContent(fileName);
+
+        if (fileContent == NULL)
+        {
+            free(fileContent);
+            fileContent = getFileContent("notfound.html");
+            addBody(response, fileContent);
+            addContentType(response, getMimeType("notfound.html"));
+            addStatusCode(response, SC_OK);
+        }
+        else
+        {
+            addBody(response, fileContent);
+            addContentType(response, getMimeType(fileName));
+            addStatusCode(response, SC_OK);
+        }
+
+        addHeader(response, "Nice", "done");
+        free(fileName);
+        free(fileContent);
     }
-
-    // fprintf(stdout, "File Name: %s\n", fileName);
-
-    // fileContent = getFileContent(fileName);
-
-    // free(fileName);
-
-    if (fileContent == NULL)
-    {
-        addBody(response, "<h1>Page not found</h1>");
-        addContentType(response, "text/html");
-        addStatusCode(response, SC_NOT_FOUND);
-    }
-    else
-    {
-        addBody(response, fileContent);
-        addContentType(response, "text/html");
-        addStatusCode(response, SC_OK);
-    }
-
-    const char *responseStr = prepareResponse(response);
+    char *responseStr = prepareResponse(response);
     size_t responseLen = strlen(responseStr);
+    // fprintf(stdout, "%s\n", responseStr);
 
     ssize_t numBytesSent = send(clientSocket, responseStr, responseLen, 0);
+
+    free(responseStr);
     freerequest(request);
     freeResponse(response);
 
@@ -169,7 +201,7 @@ void startServer(struct Server *server)
         {
             continue;
         }
-        HandleRequest(clientSocket);
+        HandleRequest(clientSocket, server->endpointList);
 
         close(clientSocket);
     }
